@@ -1,0 +1,8 @@
+__pycache__/
+.venv
+*.onnx.data
+*.pyc
+*.pyo
+.pytest_cache/
+
+data/

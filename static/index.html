@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cora Paper Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <div class="brand">
+      <h1>Cora paper classifier</h1>
+      <p>A graph neural network that reads a paper's words and its citations to guess its research topic.</p>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="dot"></span><span id="status-text">Checking API</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Input column -->
+    <section class="panel inputs" aria-label="Inputs">
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-tab="cora" aria-selected="true">Cora papers</button>
+        <button class="tab" role="tab" data-tab="custom" aria-selected="false">Custom graph</button>
+        <button class="tab" role="tab" data-tab="model" aria-selected="false">Model</button>
+      </div>
+
+      <!-- Cora tab -->
+      <div class="tab-body" id="tab-cora">
+        <label for="cora-input">Paper indices</label>
+        <p class="hint">Cora has 2,708 papers (0 to 2707). Use commas and ranges, like <code>0, 14, 100-104</code>.</p>
+        <textarea id="cora-input" rows="3" spellcheck="false" placeholder="0, 1, 2, 100-104">0, 1, 2, 3, 4</textarea>
+        <div class="chips" id="cora-chips" aria-live="polite"></div>
+        <div class="row">
+          <button class="btn ghost" id="cora-random" type="button">Pick 6 random</button>
+          <button class="btn primary" id="cora-run" type="button">Classify papers</button>
+        </div>
+        <p class="hint small">The first request loads the dataset on the server and can take a few seconds.</p>
+      </div>
+
+      <!-- Custom tab -->
+      <div class="tab-body hidden" id="tab-custom">
+        <label for="node-count">Nodes in graph: <strong id="node-count-val">6</strong></label>
+        <input type="range" id="node-count" min="2" max="30" value="6" />
+        <label class="check"><input type="checkbox" id="with-edges" checked /> Connect nodes with random edges</label>
+        <div class="row">
+          <button class="btn ghost" id="gen-graph" type="button">Generate random graph</button>
+          <label class="btn ghost file" for="graph-file">Load JSON file</label>
+          <input type="file" id="graph-file" accept="application/json,.json" hidden />
+        </div>
+        <label for="graph-json">Request body</label>
+        <p class="hint">Needs <code>node_features</code> (each row has 1433 numbers) and optionally <code>edge_indices</code> as <code>[[sources], [targets]]</code>.</p>
+        <textarea id="graph-json" rows="7" spellcheck="false" placeholder='{"node_features": [[0, 1, ...]], "edge_indices": [[0], [1]]}'></textarea>
+        <div class="graph-meta" id="graph-meta">Nothing loaded yet.</div>
+        <button class="btn primary wide" id="custom-run" type="button">Classify graph</button>
+      </div>
+
+      <!-- Model tab -->
+      <div class="tab-body hidden" id="tab-model">
+        <div id="model-info" class="model-info"><p class="hint">Loading model details...</p></div>
+      </div>
+    </section>
+
+    <!-- Results column -->
+    <section class="results" aria-label="Results" aria-live="polite">
+      <div id="empty" class="panel empty">
+        <h2>No predictions yet</h2>
+        <p>Pick some Cora papers or build a small graph, then classify. Each paper gets a topic, a confidence score and the full probability spread across all seven topics.</p>
+        <ul class="legend" id="legend-empty"></ul>
+      </div>
+
+      <div id="loading" class="panel loading hidden">
+        <div class="spinner"></div><span id="loading-text">Running the model</span>
+      </div>
+
+      <div id="output" class="hidden">
+        <div class="stats" id="stats"></div>
+
+        <div class="panel mix">
+          <div class="mix-head">
+            <h2>Topic mix</h2>
+            <div class="mix-actions">
+              <button class="btn small ghost" id="sort-toggle" type="button">Sort: node order</button>
+              <button class="btn small ghost" id="copy-json" type="button">Copy JSON</button>
+            </div>
+          </div>
+          <div class="mixbar" id="mixbar"></div>
+          <ul class="legend" id="mix-legend"></ul>
+        </div>
+
+        <div class="cards" id="cards"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="assertive"></div>
+  <script src="script.js"></script>
+</body>
+</html>
